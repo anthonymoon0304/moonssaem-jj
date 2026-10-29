@@ -223,7 +223,7 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
       
       <div class="row"><label for="p_life">예상 수명 <span class="unit">세까지</span></label><input id="p_life" data-k="p_life" data-step="1" data-def="90" type="number" inputmode="numeric" min="0" step="1" placeholder="자동"></div>
       <div class="row"><label for="p_need">예상 월 생활비 <span class="unit">만원</span><small>−/+ 버튼은 10만원 단위입니다.</small></label><input id="p_need" data-k="p_need" data-step="10" data-def="300" type="number" inputmode="decimal" min="0" step="10" placeholder="0"></div>
-      <div class="row"><label for="p_inv">투자자산 <span class="unit">만원</span></label><input id="p_inv" data-k="p_inv" data-step="100" data-def="0" type="number" inputmode="decimal" min="0" step="100" placeholder="0"></div>
+      <div class="row"><label for="p_inv">투자자산 <span class="unit">만원</span><small>은퇴 나이 시점 금액</small></label><input id="p_inv" data-k="p_inv" data-step="100" data-def="0" type="number" inputmode="decimal" min="0" step="100" placeholder="0"></div>
       <div class="row"><label for="p_nom">투자수익률 예상 <span class="unit">연 %</span><small>물가상승률을 빼기 전 수익률입니다.</small></label><input id="p_nom" data-k="p_nom" data-step="0.1" data-def="5" type="number" inputmode="decimal" min="0" step="0.1" placeholder="5"></div>
       <div class="row"><label for="p_inf">물가상승률 예상 <span class="unit">연 %</span><small id="infHint"></small></label><input id="p_inf" data-k="p_inf" data-step="0.1" data-def="2.5" type="number" inputmode="decimal" min="0" step="0.1" placeholder="2.5"></div>
     </div>
@@ -506,7 +506,7 @@ function retirement(fin,sv){
   if(!lman&&document.activeElement!==lel)lel.value=sug||'';
   if(!iman&&document.activeElement!==iel)iel.value=proj;
   hint.innerHTML=age>0?'<b>예상 수명</b> 경험생명표(2024.4) '+(male?'남성':'여성')+' '+age+'세의 평균 사망 나이 '+da.toFixed(1)+'세에 수명 증가 추세 '+TREND[male?0:1]+'세를 더해 <b>'+sug+'세</b>로 채웠습니다. 고쳐 쓸 수 있습니다. <button class="linkbtn" type="button" id="lifeTable">경험생명표 그대로 '+Math.round(da)+'세</button>'+(lman?'<button class="linkbtn" type="button" id="lifeAuto">'+sug+'세로 되돌리기</button>':''):'<b>예상 수명</b> 맨 위에 나이를 넣으면 자동으로 채워집니다.';
-  $('invHint').innerHTML='<b>투자자산</b> '+start+'세에 시작할 금액입니다. '+(grow?'지금 금융자산 '+won(fin)+'에 월 저축 '+won(sv)+'을 '+start+'세까지 계속 모으면 약 '+won(proj)+'(오늘 가치)입니다. 이 값을 채웠습니다. ':'지금 금융자산 '+won(fin)+'을 채웠습니다. ')+'직접 고쳐도 됩니다. −/+는 100만원 단위입니다.'+(iman?'<button class="linkbtn" type="button" id="invAuto">자동값으로 되돌리기</button>':'');
+  $('invHint').innerHTML='<b>투자자산</b> '+start+'세가 되는 날 가지고 있을 투자자산입니다. 이 금액으로 '+start+'세부터 계산을 시작합니다. '+(grow?'지금 금융자산 '+won(fin)+'에 월 저축 '+won(sv)+'을 '+start+'세까지 계속 모으면 약 '+won(proj)+'(오늘 가치)라서 이 값을 채웠습니다. ':'지금 금융자산 '+won(fin)+'을 채웠습니다. ')+'직접 고쳐도 됩니다. −/+는 100만원 단위입니다.'+(iman?'<button class="linkbtn" type="button" id="invAuto">자동값으로 되돌리기</button>':'');
   var la=$('lifeAuto'),ia=$('invAuto');
   if(la)la.addEventListener('click',function(){$('p_life').blur();S.v.p_life='';save();calc()});
   var lt=$('lifeTable');if(lt)lt.addEventListener('click',function(){$('p_life').blur();S.v.p_life=Math.round(da);$('p_life').value=Math.round(da);save();calc()});
