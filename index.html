@@ -174,6 +174,7 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
       <div class="card"><div class="k"><span>한국 가구 중위 소득</span></div><div class="v">5,800만원</div><p>연 가구소득(세전)의 중위값입니다. 평균은 7,427만원입니다. <span class="unit">2024년 1~12월 기준</span></p></div>
     </div>
     <div class="params" style="margin-top:14px">
+      <div class="row"><label for="p_age">현재 나이(가구주) <span class="unit">세</span><small>연령대별 순위와 아래 5번 은퇴 시나리오에 함께 쓰입니다.</small></label><input id="p_age" data-k="p_age" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
       <div class="row"><label for="g_inc">연 가구소득 (세전, 가구원 전체 합계) <span class="unit">만원</span><small>비워 두면 위 월 수입 × 12(세후)로 계산합니다. 세후 금액이라 실제 순위보다 낮게 나올 수 있습니다.</small></label><input id="g_inc" data-k="g_inc" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
     </div>
     <div class="cards" id="rankCards"></div>
@@ -184,6 +185,7 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 <section class="block">
   <h2>5. 은퇴 시나리오 <span class="unit">예측이 아니라 가정에 따른 계산</span></h2>
   <div class="body">
+    <p class="small" style="margin:0 0 8px">현재 나이는 위 4번 '내 위치'에 넣은 값을 씁니다.</p>
     <div class="params" id="params"></div>
     <div class="legend" id="legend"></div>
     <div class="chartbox" id="chart"></div>
@@ -251,7 +253,7 @@ var CF={
  irr:{g:'E. 비정기지출 (연간 합계)',rows:[['e_tax','세금','자동차세, 재산세, 종합부동산세'],['e_family','가족행사','명절, 생신, 용돈'],['e_event','경조사비','결혼, 장례'],['e_carfix','차량정비','자동차보험료, 수리비, 소모품'],['e_etc','기타','여행경비, 가전·비품 수리와 교체']]}
 };
 var PARAMS=[
- ['p_age','현재 나이','세',1],['p_ret','은퇴 희망 나이','세',1],['p_life','생활비를 준비할 나이(기대수명)','세',1],
+ ['p_ret','은퇴 희망 나이','세',1],['p_life','생활비를 준비할 나이(기대수명)','세',1],
  ['p_need','은퇴 후 월 생활비(오늘 가치)','만원',1],['p_pen','월 연금 수령 예상(국민연금 등, 오늘 가치)','만원',1],
  ['p_nom','예상 연 수익률(명목)','%',0.1],['p_inf','예상 물가상승률','%',0.1],['p_boost','시나리오 B: 저축을 더 늘리는 비율','%',1],['p_drop','시나리오 C: 수익률이 낮아지는 폭','%p',0.1]
 ];
@@ -387,7 +389,7 @@ function rankings(N,monthlyInc){
   if(age>0){
     var ar=ageRow(NW_AGE,age),x=N*NW_MED/ar[2],r2=nw(x);
     cards.push(rankCard('순자산 · '+ar[1]+' 가구','이 연령대 가구주의 중앙값은 '+won(ar[2])+'입니다. 연령대 순위는 중앙값으로 환산한 추정입니다.',r2[0],r2[1],'추정'));
-  }else cards.push(waiting('순자산 · 같은 연령대','아래 5번에서 현재 나이를 입력하면 연령대 순위도 나옵니다.'));
+  }else cards.push(waiting('순자산 · 같은 연령대','위 “현재 나이” 칸에 나이를 넣으면 연령대 순위도 나옵니다.'));
   /* 소득 */
   var g=num('g_inc'),x2=g>0?g:monthlyInc*12,basis=g>0?'입력한 세전 소득 ':'월 수입×12(세후) ';
   if(x2>0){
@@ -398,7 +400,7 @@ function rankings(N,monthlyInc){
       for(var i=0;i<5;i++)knots.push([INC_X[i],c[i]]);
       var t2=x2>=10000?[100-c[4],true]:[100-interp(knots,x2),false];
       cards.push(rankCard('소득 · '+ir[1]+' 가구',x2>=10000?'1억 원 이상 구간은 세분되지 않아 구간 전체로 보여 줍니다.':'조사표의 소득 구간 분포를 이어서 구한 값입니다.',t2[0],t2[1],g>0?'':'세후 기준'));
-    }else cards.push(waiting('소득 · 같은 연령대','아래 5번에서 현재 나이를 입력하면 연령대 순위도 나옵니다.'));
+    }else cards.push(waiting('소득 · 같은 연령대','위 “현재 나이” 칸에 나이를 넣으면 연령대 순위도 나옵니다.'));
   }else{cards.push(waiting('소득 · 전국 가구','월 수입이나 연 가구소득을 입력하세요.'))}
   $('rankCards').innerHTML=cards.join('');
 }
