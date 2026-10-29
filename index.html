@@ -214,7 +214,7 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 </section>
 
 <section class="block">
-  <h2>5. 은퇴 후 돈이 얼마나 버틸까 <span class="unit">물가상승률은 뺀 단순 계산</span></h2>
+  <h2>5. 은퇴 후 돈이 얼마나 버틸까 <span class="unit">금액은 오늘 가치 기준</span></h2>
   <div class="body">
     <p class="small" style="margin:0 0 8px">나이와 성별은 맨 위 기본 정보의 값을 씁니다. 은퇴 전까지는 위 2번의 월 저축·투자액을 계속 모은다고 봅니다.</p>
     <div class="params">
@@ -223,7 +223,8 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
       <div class="row"><label for="p_life">예상 수명 <span class="unit">세까지</span><small id="lifeHint">나이를 넣으면 자동으로 채워집니다.</small></label><input id="p_life" data-k="p_life" data-step="1" data-def="90" type="number" inputmode="numeric" min="0" step="1" placeholder="자동"></div>
       <div class="row"><label for="p_need">예상 월 생활비 <span class="unit">만원</span></label><input id="p_need" data-k="p_need" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
       <div class="row"><label for="p_inv">투자자산 <span class="unit">만원</span><small id="invHint"></small></label><input id="p_inv" data-k="p_inv" data-step="100" data-def="0" type="number" inputmode="decimal" min="0" step="100" placeholder="0"></div>
-      <div class="row"><label for="p_nom">투자수익률 예상 <span class="unit">연 %</span><small>물가상승률을 따로 넣지 않으니, 물가를 뺀 수익률로 넣으세요. 예: 연 5%, 물가 2.5%면 2.5%</small></label><input id="p_nom" data-k="p_nom" type="number" inputmode="decimal" step="0.1" placeholder="0"></div>
+      <div class="row"><label for="p_nom">투자수익률 예상 <span class="unit">연 %</span><small>물가상승률을 빼기 전 수익률입니다.</small></label><input id="p_nom" data-k="p_nom" data-step="0.1" data-def="5" type="number" inputmode="decimal" min="0" step="0.1" placeholder="5"></div>
+      <div class="row"><label for="p_inf">물가상승률 예상 <span class="unit">연 %</span><small id="infHint"></small></label><input id="p_inf" data-k="p_inf" data-step="0.1" data-def="2.5" type="number" inputmode="decimal" min="0" step="0.1" placeholder="2.5"></div>
     </div>
     <h3 class="sub">은퇴 후 받을 돈 <span class="unit">월, 만원</span></h3>
     <div id="retRows"></div>
@@ -291,20 +292,21 @@ var CF={
  vary:{g:'D. 변동지출 (월)',rows:[['v_food','식비','식료품, 외식'],['v_pocket','용돈','본인, 배우자, 자녀'],['v_car','차량·교통비','대중교통, 주유, 주차, 대리운전'],['v_cloth','의류·미용','의류, 신발, 미용실, 화장품'],['v_health','건강·의료비','병원, 약, 영양제'],['v_culture','문화·여가비','취미, 운동, 공연, 도서'],['v_social','교제비','회식, 술자리']]},
  irr:{g:'E. 비정기지출 (연간 합계)',rows:[['e_tax','세금','자동차세, 재산세, 종합부동산세'],['e_family','가족행사','명절, 생신, 용돈'],['e_event','경조사비','결혼, 장례'],['e_carfix','차량정비','자동차보험료, 수리비, 소모품'],['e_etc','기타','여행경비, 가전·비품 수리와 교체']]}
 };
-var DEFAULTS={n_age:60,r_age:60,pp_age:60,h_age:60,w_age:60,o_age:60};
+var DEFAULTS={p_nom:5,p_inf:2.5,n_age:60,r_age:60,pp_age:60,h_age:60,w_age:60,o_age:60};
 var RET=[['n','국민연금','살부터'],['r','퇴직연금','살부터'],['pp','개인연금','살부터'],['h','주택연금','살부터'],['w','근로소득','살까지'],['o','기타소득','살까지']];
-var KEEP=['p_nom','p_sex'];
+var KEEP=['p_nom','p_inf','p_sex'];
 var SAMPLE={a_home:45000,a_realty:0,a_deposit:0,a_cash:4000,a_stock:6000,a_pension:5000,a_isa:1500,a_ins:1200,a_car:1500,a_etc:500,
  l_mort:12000,l_pledge:0,l_bank:0,l_card:0,l_minus:500,l_deposit:0,l_etc:0,
  i_work:600,i_biz:0,i_etc:20,s_cash:30,s_pension:55,s_stock:40,s_etc:0,
  f_house:130,f_util:25,f_tel:18,f_ins:35,f_edu:40,f_etc:5,loan_pay:90,
  v_food:70,v_pocket:30,v_car:25,v_cloth:15,v_health:10,v_culture:20,v_social:20,
  e_tax:120,e_family:120,e_event:100,e_carfix:80,e_etc:120,
- p_age:48,p_ret:60,p_sex:1,p_need:300,p_nom:3,n_age:65,n_amt:100,r_age:60,r_amt:50,pp_age:60,pp_amt:30};
+ p_age:48,p_ret:60,p_sex:1,p_need:300,p_nom:5,p_inf:2.5,n_age:65,n_amt:100,r_age:60,r_amt:50,pp_age:60,pp_amt:30};
 var KEY='jaemu-jindan-v1';
 var S={v:{},sample:true};
 
 function $(id){return document.getElementById(id)}
+function numD(id){var v=S.v[id];if(v===undefined||v===''||!isFinite(parseFloat(v)))return DEFAULTS[id]!==undefined?DEFAULTS[id]:0;return parseFloat(v)}
 function num(id){var x=parseFloat(S.v[id]);return isFinite(x)?x:0}
 function sum(ids){return ids.reduce(function(a,i){return a+num(i)},0)}
 function rowsOf(groups){var o=[];groups.forEach(function(g){g.rows.forEach(function(r){o.push(r[0])})});return o}
@@ -346,7 +348,7 @@ function build(){
     function mk(t,d,lab){var b=document.createElement('button');b.type='button';b.textContent=t;b.setAttribute('aria-label',lab);
       b.addEventListener('click',function(){var st=parseFloat(el.dataset.step),cur=parseFloat(el.value);
         if(!isFinite(cur))cur=parseFloat(el.dataset.def)||0;
-        var v=Math.max(0,cur+d*st);el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}))});return b}
+        var dec=(String(st).split('.')[1]||'').length,v=Math.max(0,parseFloat((cur+d*st).toFixed(dec)));el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}))});return b}
     w.appendChild(mk('−',-1,'줄이기'));w.appendChild(el);w.appendChild(mk('+',1,'늘리기'));
   });
   document.querySelectorAll('[data-k]').forEach(function(el){
@@ -477,8 +479,9 @@ function incomeAt(a){
   return t;
 }
 function retirement(fin,sv){
-  var age=num('p_age'),ret=num('p_ret'),male=num('p_sex')!==2,need=num('p_need'),r=num('p_nom')/100;
+  var age=num('p_age'),ret=num('p_ret'),male=num('p_sex')!==2,need=num('p_need'),nom=numD('p_nom')/100,inf=numD('p_inf')/100,r=(1+nom)/(1+inf)-1;
   var hint=$('lifeHint'),msg=$('retMsg');
+  $('infHint').textContent='금액은 모두 오늘 가치로 읽습니다. 물가를 뺀 실질수익률은 연 '+(r*100).toFixed(1)+'%입니다.';
   var da=age>0?deathAge(male,age):0,sug=age>0?Math.round(da+TREND[male?0:1]):0;
   var lv=S.v.p_life,lman=(lv!==''&&lv!==undefined&&parseFloat(lv)>0),life=lman?parseFloat(lv):sug;
   var iv=S.v.p_inv,iman=(iv!==''&&iv!==undefined&&isFinite(parseFloat(iv))),W0=iman?parseFloat(iv):fin;
@@ -516,7 +519,7 @@ function retirement(fin,sv){
   else h+='<p style="font-size:17px" class="neg">예상 수명 '+life+'세까지 약 <b>'+won(-bal)+'</b>이 모자랍니다.</p>';
   h+='<p>'+start+'세 시점의 투자자산은 약 '+won(wret)+'입니다.'+(dep!==null?' 투자자산은 약 '+Math.floor(dep)+'세에 바닥납니다.':'')+'</p>';
   if(net0!==null)h+='<p>'+start+'세 첫 달에는 '+(net0<0?'연금·소득이 생활비보다 '+won(-net0)+' 모자라 투자자산에서 뺍니다.':'연금·소득이 생활비보다 '+won(net0)+' 많습니다.')+'</p>';
-  h+='<p class="small">물가상승률은 넣지 않았습니다. 미래 일을 맞히는 계산이 아니라, 입력한 가정이 그대로 이어질 때의 결과입니다.</p>';
+  h+='<p class="small">금액은 오늘 가치 기준입니다(물가상승률 '+(inf*100).toFixed(1)+'% 반영). 미래 일을 맞히는 계산이 아니라, 입력한 가정이 그대로 이어질 때의 결과입니다.</p>';
   msg.innerHTML=h;
 }
 function nice(max){var p=Math.pow(10,Math.floor(Math.log10(max))),f=max/p,u=f<=1?1:f<=2?2:f<=5?5:10;return u*p}
@@ -555,7 +558,7 @@ function buildShare(){
   document.querySelectorAll('#diag .card').forEach(function(c){
     var p=c.querySelector('.pill');L.push('· '+txt(c.querySelector('.k span'))+' '+txt(c.querySelector('.v'))+(p?' ('+txt(p)+')':''))});
   var rk=document.querySelectorAll('#rankCards .card');if(rk.length){L.push('');L.push('[전국 가구 중 내 위치: 2025 가계금융복지조사 기준]');Array.prototype.forEach.call(rk,function(c){var v=txt(c.querySelector('.v'));if(v!=='-')L.push('· '+txt(c.querySelector('.k span'))+' '+v)});L.push('· 한국 중위 순자산 2억 3,860만원 / 중위 소득 5,800만원')}
-  var rp=document.querySelectorAll('#retMsg p');if(rp.length){L.push('');L.push('[은퇴 후 현금흐름: 물가상승률 제외]');Array.prototype.slice.call(rp,0,3).forEach(function(x){L.push('· '+txt(x))})}
+  var rp=document.querySelectorAll('#retMsg p');if(rp.length){L.push('');L.push('[은퇴 후 현금흐름: 오늘 가치 기준]');Array.prototype.slice.call(rp,0,3).forEach(function(x){L.push('· '+txt(x))})}
   L.push('');L.push('※ 교육용 계산입니다. 예측이나 투자 권유가 아닙니다.');
   L.push('');L.push('[내 숫자 코드: 다음에 이 메시지를 복사해 붙여넣으면 숫자가 돌아옵니다]');
   L.push(JSON.stringify(compact()));
