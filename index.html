@@ -519,6 +519,7 @@ function retirement(fin,sv){
   else h+='<p style="font-size:17px" class="neg">예상 수명 '+life+'세까지 약 <b>'+won(-bal)+'</b>이 모자랍니다.</p>';
   h+='<p>'+start+'세 시점의 투자자산은 약 '+won(wret)+'입니다.'+(dep!==null?' 투자자산은 약 '+Math.floor(dep)+'세에 바닥납니다.':'')+'</p>';
   if(net0!==null)h+='<p>'+start+'세 첫 달에는 '+(net0<0?'연금·소득이 생활비보다 '+won(-net0)+' 모자라 투자자산에서 뺍니다.':'연금·소득이 생활비보다 '+won(net0)+' 많습니다.')+'</p>';
+  if(net0!==null&&net0<0&&wret>0&&wret*r>-net0*12&&dep===null)h+='<p>첫해 기준으로 투자수익(약 '+won(wret*r)+')이 부족분 인출액(약 '+won(-net0*12)+')보다 큽니다. 그래서 투자자산이 줄지 않고 늘어나고, 오래 살수록 남는 돈이 커집니다. 수익률 가정이 높으면 이렇게 나오니 가정을 점검하세요.</p>';
   h+='<p class="small">금액은 오늘 가치 기준입니다(물가상승률 '+(inf*100).toFixed(1)+'% 반영). 미래 일을 맞히는 계산이 아니라, 입력한 가정이 그대로 이어질 때의 결과입니다.</p>';
   msg.innerHTML=h;
 }
