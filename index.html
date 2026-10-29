@@ -483,10 +483,11 @@ function retirement(fin,sv){
   var lel=$('p_life'),iel=$('p_inv');
   if(!lman&&document.activeElement!==lel)lel.value=sug||'';
   if(!iman&&document.activeElement!==iel)iel.value=Math.round(fin);
-  hint.innerHTML=(age>0?'경험생명표(2024.4 시행) 기준 '+(male?'남성':'여성')+' '+age+'세의 평균 사망 나이는 약 '+da.toFixed(1)+'세입니다. 평균수명이 10년마다 늘어난 폭(약 '+TREND[male?0:1]+'세)을 더해 <b>'+sug+'세</b>를 자동으로 채웠습니다. 고쳐 쓸 수 있습니다.':'맨 위에 나이를 넣으면 자동으로 채워집니다.')+(lman&&age>0?'<button class="linkbtn" type="button" id="lifeAuto">자동값으로 되돌리기</button>':'');
+  hint.innerHTML=(age>0?'경험생명표(2024.4 시행) 기준 '+(male?'남성':'여성')+' '+age+'세의 평균 사망 나이는 약 '+da.toFixed(1)+'세입니다. 평균수명이 10년마다 늘어난 폭(약 '+TREND[male?0:1]+'세)을 더해 <b>'+sug+'세</b>를 자동으로 채웠습니다. 칸의 숫자나 −/+ 버튼으로 고쳐 쓸 수 있습니다.':'맨 위에 나이를 넣으면 자동으로 채워집니다.')+(age>0?'<br>경험생명표 그대로(증가 추세 빼고)는 '+Math.round(da)+'세입니다. <button class="linkbtn" type="button" id="lifeTable">'+Math.round(da)+'세로 바꾸기</button>':'')+(lman&&age>0?'<button class="linkbtn" type="button" id="lifeAuto">제안 나이로 되돌리기</button>':'');
   $('invHint').innerHTML='재무상태표의 금융자산 합계 '+won(fin)+'을 자동으로 채웠습니다. +·− 버튼은 100만원 단위입니다. 부동산은 넣지 않습니다.'+(iman?'<button class="linkbtn" type="button" id="invAuto">자동값으로 되돌리기</button>':'');
   var la=$('lifeAuto'),ia=$('invAuto');
   if(la)la.addEventListener('click',function(){S.v.p_life='';save();calc()});
+  var lt=$('lifeTable');if(lt)lt.addEventListener('click',function(){S.v.p_life=Math.round(da);$('p_life').value=Math.round(da);save();calc()});
   if(ia)ia.addEventListener('click',function(){S.v.p_inv='';save();calc()});
   var start=Math.max(age,ret);
   if(!(age>0)||!(ret>0)||!(need>0)||life<=start){
