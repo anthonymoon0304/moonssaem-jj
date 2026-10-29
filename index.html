@@ -109,9 +109,9 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 .small{font-size:13px;color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.meter i,.stack i{transition:width .25s}}
 </style>
-
 </head>
 <body>
+
 <div class="wrap">
 <header class="top">
   <h1>내 재무 진단표</h1>
@@ -167,7 +167,22 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 </section>
 
 <section class="block">
-  <h2>4. 은퇴 시나리오 <span class="unit">예측이 아니라 가정에 따른 계산</span></h2>
+  <h2>4. 내 위치 <span class="unit">전국 가구 100곳 중 어디쯤일까</span></h2>
+  <div class="body">
+    <div class="cards">
+      <div class="card"><div class="k"><span>한국 가구 중위 순자산</span></div><div class="v">2억 3,860만원</div><p>전체 가구를 순자산 순서로 세웠을 때 한가운데 가구의 금액입니다. 평균은 4억 7,144만원입니다. 부자 가구가 평균을 끌어올려서 중위값이 실제 체감에 가깝습니다. <span class="unit">2025년 3월말 기준</span></p></div>
+      <div class="card"><div class="k"><span>한국 가구 중위 소득</span></div><div class="v">5,800만원</div><p>연 가구소득(세전)의 중위값입니다. 평균은 7,427만원입니다. <span class="unit">2024년 1~12월 기준</span></p></div>
+    </div>
+    <div class="params" style="margin-top:14px">
+      <div class="row"><label for="g_inc">연 가구소득 (세전, 가구원 전체 합계) <span class="unit">만원</span><small>비워 두면 위 월 수입 × 12(세후)로 계산합니다. 세후 금액이라 실제 순위보다 낮게 나올 수 있습니다.</small></label><input id="g_inc" data-k="g_inc" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+    </div>
+    <div class="cards" id="rankCards"></div>
+    <div class="msg" id="rankNote"><p class="small">통계청·금융감독원·한국은행 「2025년 가계금융복지조사」(2025.12.4 발표)에서 가져온 가구 단위 표본조사 값입니다. 가구주 나이로 나눈 순위는 연령대별 중앙값을 이용한 <b>추정치</b>입니다. 소득 순위의 연령대별 값은 조사표의 소득 구간 분포를 이어서 구했습니다. 1억 원 이상 구간은 세분되지 않아 "상위 몇 % 이내"로만 표시합니다. 개인 평가가 아니라 참고용 위치입니다.</p></div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>5. 은퇴 시나리오 <span class="unit">예측이 아니라 가정에 따른 계산</span></h2>
   <div class="body">
     <div class="params" id="params"></div>
     <div class="legend" id="legend"></div>
@@ -178,7 +193,7 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 </section>
 
 <section class="block">
-  <h2>5. 결과 보내기 <span class="unit">다음에 숫자를 다시 적지 않아도 됩니다</span></h2>
+  <h2>6. 결과 보내기 <span class="unit">다음에 숫자를 다시 적지 않아도 됩니다</span></h2>
   <div class="body">
     <p class="small" style="margin-top:0">결과 요약과 내 숫자 코드가 한 메시지로 만들어집니다. 휴대폰에서 누르면 공유 창이 열립니다. 카카오톡을 고르고 <b>나와의 채팅</b>에 보내 두세요. 다음에는 그 메시지를 복사해 아래 '저장과 복원'에 붙여넣으면 숫자가 그대로 돌아옵니다.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -337,7 +352,55 @@ function calc(){
   var fp=A>0?fin/A:0,rp=A>0?re/A:0,op=A>0?oth/A:0;
   $('mixBox').innerHTML=A>0?'<p><b>자산 구성</b></p><div class="stack" role="img" aria-label="자산 구성"><i style="width:'+rp*100+'%;background:var(--c3)"></i><i style="width:'+fp*100+'%;background:var(--c2)"></i><i style="width:'+op*100+'%;background:var(--c1)"></i></div>'+
     '<div class="legend"><span style="--sw:var(--c3)">부동산 '+pct(rp)+' ('+won(re)+')</span><span style="--sw:var(--c2)">금융 '+pct(fp)+' ('+won(fin)+')</span><span style="--sw:var(--c1)">기타 '+pct(op)+' ('+won(oth)+')</span></div>':'<p>자산을 입력하면 구성이 나옵니다.</p>';
+  rankings(N,inc);
   scenario(fin,sv);
+}
+/* 2025 가계금융복지조사(통계청·금감원·한은) 값: [금액 만원, 하위 누적 %] */
+var NW_CDF=[[-10000,0.2],[0,3.0],[10000,29.4],[20000,44.8],[30000,56.9],[40000,65.8],[50000,72.0],[60000,76.6],[70000,80.1],[80000,83.4],[90000,85.8],[100000,88.2],[110020,90]];
+var NW_MED=23860;
+var NW_AGE=[[29,'29세 이하',5000],[39,'30대',15585],[49,'40대',28384],[59,'50대',31685],[200,'60세 이상',25000]];
+var INC_CDF=[[0,0],[1536,10],[2550,20],[3590,30],[4630,40],[5800,50],[7093,60],[8808,70],[10918,80],[14798,90]];
+var INC_X=[1000,3000,5000,7000,10000];
+var INC_AGE=[[39,'39세 이하',[1.6,17.1,42.3,63.7,81.6]],[49,'40대',[1.2,9.4,25.4,42.8,66.4]],[59,'50대',[2.3,14.9,30.3,45.0,63.5]],[200,'60세 이상',[6.6,39.2,59.3,72.8,85.0]]];
+function interp(t,x){
+  if(x<=t[0][0])return t[0][1];
+  for(var i=1;i<t.length;i++){if(x<=t[i][0]){var a=t[i-1],b=t[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0])}}
+  return t[t.length-1][1];
+}
+function ageRow(tbl,age){for(var i=0;i<tbl.length;i++){if(age<=tbl[i][0])return tbl[i]}return tbl[tbl.length-1]}
+/* top: 상위 %, within: true면 "이내"(구간 상한만 아는 경우) */
+function rankCard(title,sub,top,within,tag){
+  var big,t=Math.min(99.9,Math.max(0.1,top));
+  big='상위 '+(within?(t<10?t.toFixed(0):Math.round(t)):(t<10?Math.max(1,Math.round(t)):Math.round(t)))+'%'+(within?' 이내':'');
+  return '<div class="card"><div class="k"><span>'+title+'</span>'+(tag?'<span class="pill none">'+tag+'</span>':'')+'</div><div class="v">'+big+'</div><p>'+sub+'</p>'+
+    '<div class="stack" role="img" aria-label="'+title+' '+big+'"><i style="width:'+(100-t)+'%;background:var(--c2)"></i></div>'+
+    '<div class="legend"><span style="--sw:var(--c2)">나보다 아래 '+Math.round(100-t)+'%</span><span style="--sw:var(--grid)">나보다 위 '+Math.round(t)+'%</span></div></div>';
+}
+function waiting(title,t){return '<div class="card"><div class="k"><span>'+title+'</span></div><div class="v">-</div><p>'+t+'</p></div>'}
+function rankings(N,monthlyInc){
+  var age=num('p_age'),cards=[];
+  /* 순자산 전국 */
+  var hi=NW_CDF[NW_CDF.length-1];
+  function nw(x){return x>=hi[0]?[10,true]:[100-interp(NW_CDF,x),false]}
+  var r=nw(N);
+  cards.push(rankCard('순자산 · 전국 가구','내 순자산 '+won(N)+'. 한국 중위값 2억 3,860만원과 견줍니다.',r[0],r[1],''));
+  if(age>0){
+    var ar=ageRow(NW_AGE,age),x=N*NW_MED/ar[2],r2=nw(x);
+    cards.push(rankCard('순자산 · '+ar[1]+' 가구','이 연령대 가구주의 중앙값은 '+won(ar[2])+'입니다. 연령대 순위는 중앙값으로 환산한 추정입니다.',r2[0],r2[1],'추정'));
+  }else cards.push(waiting('순자산 · 같은 연령대','아래 5번에서 현재 나이를 입력하면 연령대 순위도 나옵니다.'));
+  /* 소득 */
+  var g=num('g_inc'),x2=g>0?g:monthlyInc*12,basis=g>0?'입력한 세전 소득 ':'월 수입×12(세후) ';
+  if(x2>0){
+    var hi2=INC_CDF[INC_CDF.length-1],t1=x2>=hi2[0]?[10,true]:[100-interp(INC_CDF,x2),false];
+    cards.push(rankCard('소득 · 전국 가구',basis+won(x2)+'. 한국 중위 소득 5,800만원과 견줍니다.',t1[0],t1[1],g>0?'':'세후 기준'));
+    if(age>0){
+      var ir=ageRow(INC_AGE,age),c=ir[2],knots=[[0,0]];
+      for(var i=0;i<5;i++)knots.push([INC_X[i],c[i]]);
+      var t2=x2>=10000?[100-c[4],true]:[100-interp(knots,x2),false];
+      cards.push(rankCard('소득 · '+ir[1]+' 가구',x2>=10000?'1억 원 이상 구간은 세분되지 않아 구간 전체로 보여 줍니다.':'조사표의 소득 구간 분포를 이어서 구한 값입니다.',t2[0],t2[1],g>0?'':'세후 기준'));
+    }else cards.push(waiting('소득 · 같은 연령대','아래 5번에서 현재 나이를 입력하면 연령대 순위도 나옵니다.'));
+  }else{cards.push(waiting('소득 · 전국 가구','월 수입이나 연 가구소득을 입력하세요.'))}
+  $('rankCards').innerHTML=cards.join('');
 }
 function card(k,v,lv,t){return '<div class="card"><div class="k"><span>'+k+'</span>'+(lv==='none'?'':status(lv,LBL[lv]))+'</div><div class="v">'+v+'</div><p>'+t+'</p></div>'}
 
@@ -410,6 +473,7 @@ function buildShare(){
   L.push('');
   document.querySelectorAll('#diag .card').forEach(function(c){
     var p=c.querySelector('.pill');L.push('· '+txt(c.querySelector('.k span'))+' '+txt(c.querySelector('.v'))+(p?' ('+txt(p)+')':''))});
+  var rk=document.querySelectorAll('#rankCards .card');if(rk.length){L.push('');L.push('[전국 가구 중 내 위치: 2025 가계금융복지조사 기준]');Array.prototype.forEach.call(rk,function(c){var v=txt(c.querySelector('.v'));if(v!=='-')L.push('· '+txt(c.querySelector('.k span'))+' '+v)});L.push('· 한국 중위 순자산 2억 3,860만원 / 중위 소득 5,800만원')}
   var rows=document.querySelectorAll('#resTbl tr');
   if(rows.length>1){L.push('');L.push('[은퇴 시나리오: 오늘 가치 기준]');
     Array.prototype.slice.call(rows,1).forEach(function(r){var c=r.children;L.push('· '+txt(c[0])+' '+txt(c[1])+' (필요 자금 대비 '+txt(c[2])+')')})}
