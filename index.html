@@ -115,7 +115,7 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 <div class="wrap">
 <header class="top">
   <h1>내 재무 진단표</h1>
-  <p>재무상태표와 월 현금흐름표를 채우면 순자산, 저축률, 비상금, 부채 부담을 계산해 줍니다. 마지막에는 은퇴 나이까지의 금융자산을 세 가지 경우로 비교합니다. <span class="unit">모든 금액 단위: 만원</span></p>
+  <p>재무상태표와 월 현금흐름표를 채우면 순자산, 저축률, 비상금, 부채 부담을 계산해 줍니다. 마지막에는 은퇴 나이까지의 금융자산을 세 가지 경우로 비교합니다. <span class="unit">모든 금액 단위: 만원</span><br><span class="unit">입력한 숫자는 이 기기의 브라우저에만 남고 서버로 보내지 않습니다.</span></p>
 </header>
 
 <div class="bar" id="bar" aria-live="polite">
@@ -174,6 +174,19 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
     <div class="chartbox" id="chart"></div>
     <div class="scroll"><table class="res" id="resTbl"></table></div>
     <div class="msg" id="scMsg"></div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>5. 결과 보내기 <span class="unit">다음에 숫자를 다시 적지 않아도 됩니다</span></h2>
+  <div class="body">
+    <p class="small" style="margin-top:0">결과 요약과 내 숫자 코드가 한 메시지로 만들어집니다. 휴대폰에서 누르면 공유 창이 열립니다. 카카오톡을 고르고 <b>나와의 채팅</b>에 보내 두세요. 다음에는 그 메시지를 복사해 아래 '저장과 복원'에 붙여넣으면 숫자가 그대로 돌아옵니다.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="shareBtn" type="button">카카오톡 등으로 보내기</button>
+      <button class="btn ghost" id="shareCopyBtn" type="button">결과 문장 복사</button>
+    </div>
+    <p class="small" id="shareMsg" style="margin:8px 0 0"></p>
+    <p class="small" style="margin:8px 0 0">보내기를 누르면 내가 고른 앱(카카오톡 등)으로 메시지가 넘어갑니다. 그 뒤의 보관은 해당 앱의 규칙을 따릅니다. 가족이나 다른 사람에게 보내기 전에 숫자가 들어 있다는 점을 확인하세요.</p>
   </div>
 </section>
 
@@ -388,6 +401,29 @@ function drawChart(){
   box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="나이별 금융자산 추이, 오늘 가치 기준, 단위 만원">'+g+'</svg>';
 }
 
+function compact(){var o={};Object.keys(S.v).forEach(function(k){var x=S.v[k];if(x!==''&&x!==undefined&&x!==0)o[k]=x});return o}
+function txt(el){return el.textContent.replace(/\s+/g,' ').trim()}
+function buildShare(){
+  var d=new Date(),L=[];
+  L.push('[내 재무 진단표] '+d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate());
+  L.push('순자산 '+txt($('bNet'))+' / 저축·투자율 '+txt($('bSave'))+' / 월 수지 '+txt($('bBal')));
+  L.push('');
+  document.querySelectorAll('#diag .card').forEach(function(c){
+    var p=c.querySelector('.pill');L.push('· '+txt(c.querySelector('.k span'))+' '+txt(c.querySelector('.v'))+(p?' ('+txt(p)+')':''))});
+  var rows=document.querySelectorAll('#resTbl tr');
+  if(rows.length>1){L.push('');L.push('[은퇴 시나리오: 오늘 가치 기준]');
+    Array.prototype.slice.call(rows,1).forEach(function(r){var c=r.children;L.push('· '+txt(c[0])+' '+txt(c[1])+' (필요 자금 대비 '+txt(c[2])+')')})}
+  var ps=document.querySelectorAll('#scMsg p');if(ps.length){L.push('');L.push(txt(ps[0]));if(ps[1])L.push(txt(ps[1]))}
+  L.push('');L.push('※ 교육용 계산입니다. 예측이나 투자 권유가 아닙니다.');
+  L.push('');L.push('[내 숫자 코드: 다음에 이 메시지를 복사해 붙여넣으면 숫자가 돌아옵니다]');
+  L.push(JSON.stringify(compact()));
+  return L.join('\n');
+}
+function shareDone(m){$('shareMsg').textContent=m}
+function copyText(t,ok){
+  var fb=function(){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var r=false;try{r=document.execCommand('copy')}catch(e){}document.body.removeChild(ta);shareDone(r?ok:'자동 복사가 막혀 있습니다. 아래 칸에 표시한 글자를 직접 복사하세요.');if(!r){$('backup').value=t}};
+  try{navigator.clipboard.writeText(t).then(function(){shareDone(ok)},fb)}catch(e){fb()}
+}
 function init(){
   load();build();
   $('sampleNotice').hidden=!S.sample;
@@ -398,17 +434,23 @@ function init(){
     $('sampleNotice').hidden=true;calc();window.scrollTo(0,0);
   });
   $('copyBtn').addEventListener('click',function(){
-    var t=JSON.stringify(S.v);$('backup').value=t;
+    var t=JSON.stringify(compact());$('backup').value=t;
     var done=function(ok){$('backupMsg').textContent=ok?'복사했습니다. 메모 앱에 붙여넣어 보관하세요.':'자동 복사가 막혀 있습니다. 위 칸의 글자를 직접 선택해 복사하세요.';if(!ok){$('backup').select()}};
     try{navigator.clipboard.writeText(t).then(function(){done(true)},function(){done(false)})}catch(e){done(false)}
   });
   $('loadBtn').addEventListener('click',function(){
-    try{var o=JSON.parse($('backup').value);if(!o||typeof o!=='object')throw 0;
+    try{var s=$('backup').value,i=s.indexOf('{'),j=s.lastIndexOf('}');var o=JSON.parse(s.slice(i,j+1));if(!o||typeof o!=='object')throw 0;
       S={v:o,sample:false};save();
       document.querySelectorAll('input[data-k]').forEach(function(el){var v=S.v[el.dataset.k];el.value=(v===undefined||v==='')?'':v});
       $('sampleNotice').hidden=true;calc();$('backupMsg').textContent='불러왔습니다.';
     }catch(e){$('backupMsg').textContent='읽을 수 없는 내용입니다. 복사한 숫자를 그대로 붙여넣었는지 확인하세요.'}
   });
+  $('shareBtn').addEventListener('click',function(){
+    var t=buildShare();
+    if(navigator.share){navigator.share({title:'내 재무 진단표',text:t}).then(function(){shareDone('공유 창을 열었습니다. 카카오톡 → 나와의 채팅을 고르세요.')},function(e){if(e&&e.name==='AbortError')return;copyText(t,'공유가 막혀 있어 문장을 복사했습니다. 카카오톡 대화창에 붙여넣으세요.')})}
+    else{copyText(t,'이 기기에서는 공유 창이 열리지 않아 문장을 복사했습니다. 카카오톡 대화창에 붙여넣으세요.')}
+  });
+  $('shareCopyBtn').addEventListener('click',function(){copyText(buildShare(),'복사했습니다. 카카오톡 나와의 채팅에 붙여넣어 보관하세요.')});
   var t;window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(drawChart,120)});
   calc();
 }
