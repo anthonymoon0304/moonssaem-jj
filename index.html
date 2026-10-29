@@ -65,8 +65,13 @@ section.block>.body{padding:16px}
 .row{display:grid;grid-template-columns:1fr 128px;gap:10px;align-items:center;padding:5px 0}
 .row label{min-width:0;font-size:14px}
 .row label small{display:block;color:var(--muted);font-size:12px;line-height:1.35}
-.row input{width:100%;min-width:0;font-family:var(--font-num);font-size:15px;text-align:right;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink)}
-.row input:focus-visible,button:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row input,.row select,.prow input{width:100%;min-width:0;font-family:var(--font-num);font-size:15px;text-align:right;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink)}
+.row input:focus-visible,.row select:focus-visible,button:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.prow{display:grid;grid-template-columns:minmax(72px,1fr) 62px auto 78px auto;gap:6px;align-items:center;padding:5px 0}
+.prow label{font-size:14px;min-width:0}
+.prow .unit{white-space:nowrap}
+.row select{width:100%;min-width:0;font-family:inherit}
+h3.sub{margin:16px 0 4px;font-size:14px;color:var(--accent)}
 .total{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--accent-soft);border-radius:4px;font-weight:600;margin-top:4px}
 .total span:last-child{font-family:var(--font-num);font-weight:500}
 .total.big{font-size:17px}
@@ -183,14 +188,22 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 </section>
 
 <section class="block">
-  <h2>5. 은퇴 시나리오 <span class="unit">예측이 아니라 가정에 따른 계산</span></h2>
+  <h2>5. 은퇴 후 돈이 얼마나 버틸까 <span class="unit">물가상승률은 뺀 단순 계산</span></h2>
   <div class="body">
-    <p class="small" style="margin:0 0 8px">현재 나이는 위 4번 '내 위치'에 넣은 값을 씁니다.</p>
-    <div class="params" id="params"></div>
+    <p class="small" style="margin:0 0 8px">현재 나이는 위 4번 “내 위치”에 넣은 값을 씁니다. 은퇴 전까지는 위 2번의 월 저축·투자액을 계속 모은다고 봅니다.</p>
+    <div class="params">
+      <div class="row"><label for="p_ret">은퇴 희망 나이 <span class="unit">세</span></label><input id="p_ret" data-k="p_ret" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+      <div class="row"><label for="p_sex">성별<small>예상 수명을 정하는 데만 씁니다</small></label><select id="p_sex" data-k="p_sex"><option value="1">남성</option><option value="2">여성</option></select></div>
+      <div class="row"><label for="p_life">예상 수명 <span class="unit">세까지</span><small id="lifeHint">현재 나이를 넣으면 제안 나이가 나옵니다.</small></label><input id="p_life" data-k="p_life" type="number" inputmode="numeric" min="0" step="1" placeholder="자동"></div>
+      <div class="row"><label for="p_need">예상 월 생활비 <span class="unit">만원</span></label><input id="p_need" data-k="p_need" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+      <div class="row"><label for="p_inv">투자자산 <span class="unit">만원</span><small id="invHint"></small></label><input id="p_inv" data-k="p_inv" type="number" inputmode="decimal" min="0" step="any" placeholder="자동"></div>
+      <div class="row"><label for="p_nom">투자수익률 예상 <span class="unit">연 %</span><small>물가상승률을 따로 넣지 않으니, 물가를 뺀 수익률로 넣으세요. 예: 연 5%, 물가 2.5%면 2.5%</small></label><input id="p_nom" data-k="p_nom" type="number" inputmode="decimal" step="0.1" placeholder="0"></div>
+    </div>
+    <h3 class="sub">은퇴 후 받을 돈 <span class="unit">월, 만원</span></h3>
+    <div id="retRows"></div>
+    <div class="msg" id="retMsg"></div>
     <div class="legend" id="legend"></div>
     <div class="chartbox" id="chart"></div>
-    <div class="scroll"><table class="res" id="resTbl"></table></div>
-    <div class="msg" id="scMsg"></div>
   </div>
 </section>
 
@@ -252,18 +265,15 @@ var CF={
  vary:{g:'D. 변동지출 (월)',rows:[['v_food','식비','식료품, 외식'],['v_pocket','용돈','본인, 배우자, 자녀'],['v_car','차량·교통비','대중교통, 주유, 주차, 대리운전'],['v_cloth','의류·미용','의류, 신발, 미용실, 화장품'],['v_health','건강·의료비','병원, 약, 영양제'],['v_culture','문화·여가비','취미, 운동, 공연, 도서'],['v_social','교제비','회식, 술자리']]},
  irr:{g:'E. 비정기지출 (연간 합계)',rows:[['e_tax','세금','자동차세, 재산세, 종합부동산세'],['e_family','가족행사','명절, 생신, 용돈'],['e_event','경조사비','결혼, 장례'],['e_carfix','차량정비','자동차보험료, 수리비, 소모품'],['e_etc','기타','여행경비, 가전·비품 수리와 교체']]}
 };
-var PARAMS=[
- ['p_ret','은퇴 희망 나이','세',1],['p_life','생활비를 준비할 나이(기대수명)','세',1],
- ['p_need','은퇴 후 월 생활비(오늘 가치)','만원',1],['p_pen','월 연금 수령 예상(국민연금 등, 오늘 가치)','만원',1],
- ['p_nom','예상 연 수익률(명목)','%',0.1],['p_inf','예상 물가상승률','%',0.1],['p_boost','시나리오 B: 저축을 더 늘리는 비율','%',1],['p_drop','시나리오 C: 수익률이 낮아지는 폭','%p',0.1]
-];
+var RET=[['n','국민연금','살부터'],['r','퇴직연금','살부터'],['pp','개인연금','살부터'],['h','주택연금','살부터'],['w','근로소득','살까지'],['o','기타소득','살까지']];
+var KEEP=['p_nom','p_sex'];
 var SAMPLE={a_home:45000,a_realty:0,a_deposit:0,a_cash:4000,a_stock:6000,a_pension:5000,a_isa:1500,a_ins:1200,a_car:1500,a_etc:500,
  l_mort:12000,l_pledge:0,l_bank:0,l_card:0,l_minus:500,l_deposit:0,l_etc:0,
  i_work:600,i_biz:0,i_etc:20,s_cash:30,s_pension:55,s_stock:40,s_etc:0,
  f_house:130,f_util:25,f_tel:18,f_ins:35,f_edu:40,f_etc:5,loan_pay:90,
  v_food:70,v_pocket:30,v_car:25,v_cloth:15,v_health:10,v_culture:20,v_social:20,
  e_tax:120,e_family:120,e_event:100,e_carfix:80,e_etc:120,
- p_age:48,p_ret:60,p_life:90,p_need:300,p_pen:120,p_nom:4,p_inf:2.5,p_boost:20,p_drop:2};
+ p_age:48,p_ret:60,p_sex:1,p_need:300,p_nom:3,n_age:65,n_amt:100,r_age:60,r_amt:50,pp_age:60,pp_amt:30};
 var KEY='jaemu-jindan-v1';
 var S={v:{},sample:true};
 
@@ -296,12 +306,10 @@ function build(){
   $('cfLeft').innerHTML=grpHTML(CF.income,'sIn')+grpHTML(CF.saving,'sSv')+
     '<div class="grp"><h3><span>참고 입력</span></h3>'+rowHTML(['loan_pay','모든 대출의 월 상환액','원금+이자 합계. 위 지출에 이미 들어 있어도 한 번 더 적습니다. 합계에는 더하지 않습니다.'])+'</div>';
   $('cfRight').innerHTML=grpHTML(CF.fixed,'sFx')+grpHTML(CF.vary,'sVr')+grpHTML(CF.irr,'sIr');
-  var ph='';
-  PARAMS.forEach(function(p){ph+='<div class="row"><label for="'+p[0]+'">'+p[1]+' <span class="unit">'+p[2]+'</span></label><input id="'+p[0]+'" data-k="'+p[0]+'" type="number" inputmode="decimal" step="'+p[3]+'"></div>'});
-  $('params').innerHTML=ph;
-  document.querySelectorAll('input[data-k]').forEach(function(el){
+  $('retRows').innerHTML='<div class="prow small"><span></span><span>나이</span><span></span><span>월 금액</span><span></span></div>'+RET.map(function(r){return '<div class="prow"><label for="'+r[0]+'_age">'+r[1]+'</label><input id="'+r[0]+'_age" data-k="'+r[0]+'_age" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><span class="unit">'+r[2]+'</span><input id="'+r[0]+'_amt" data-k="'+r[0]+'_amt" type="number" inputmode="decimal" min="0" step="any" placeholder="0"><span class="unit">만원</span></div>'}).join('');
+  document.querySelectorAll('[data-k]').forEach(function(el){
     var v=S.v[el.dataset.k];el.value=(v===undefined||v==='')?'':v;
-    el.addEventListener('input',function(){S.v[el.dataset.k]=el.value===''?'':parseFloat(el.value);save();calc()});
+    var h=function(){S.v[el.dataset.k]=el.value===''?'':parseFloat(el.value);save();calc()};el.addEventListener('input',h);el.addEventListener('change',h);
   });
 }
 
@@ -355,7 +363,7 @@ function calc(){
   $('mixBox').innerHTML=A>0?'<p><b>자산 구성</b></p><div class="stack" role="img" aria-label="자산 구성"><i style="width:'+rp*100+'%;background:var(--c3)"></i><i style="width:'+fp*100+'%;background:var(--c2)"></i><i style="width:'+op*100+'%;background:var(--c1)"></i></div>'+
     '<div class="legend"><span style="--sw:var(--c3)">부동산 '+pct(rp)+' ('+won(re)+')</span><span style="--sw:var(--c2)">금융 '+pct(fp)+' ('+won(fin)+')</span><span style="--sw:var(--c1)">기타 '+pct(op)+' ('+won(oth)+')</span></div>':'<p>자산을 입력하면 구성이 나옵니다.</p>';
   rankings(N,inc);
-  scenario(fin,sv);
+  retirement(fin,sv);
 }
 /* 2025 가계금융복지조사(통계청·금감원·한은) 값: [금액 만원, 하위 누적 %] */
 var NW_CDF=[[-10000,0.2],[0,3.0],[10000,29.4],[20000,44.8],[30000,56.9],[40000,65.8],[50000,72.0],[60000,76.6],[70000,80.1],[80000,83.4],[90000,85.8],[100000,88.2],[110020,90]];
@@ -406,64 +414,84 @@ function rankings(N,monthlyInc){
 }
 function card(k,v,lv,t){return '<div class="card"><div class="k"><span>'+k+'</span>'+(lv==='none'?'':status(lv,LBL[lv]))+'</div><div class="v">'+v+'</div><p>'+t+'</p></div>'}
 
-function series(W0,monthly,r,n){
-  var out=[W0],w=W0;
-  for(var i=1;i<=n;i++){w=w*(1+r)+monthly*12;out.push(w)}
-  return out;
+/* 경험생명표(2024.4 시행, 10회) 사망률. 5세 간격 값을 로그 보간해 평균 사망 나이를 계산 */
+var QM=[0.00156,0.00004,0.00003,0.00014,0.00028,0.00039,0.00045,0.00053,0.00065,0.00093,0.00141,0.00216,0.00339,0.00557,0.00935,0.01707,0.03200,0.05303,0.08724,0.13538,0.20670];
+var QF=[0.00145,0.00004,0.00003,0.00010,0.00020,0.00024,0.00026,0.00035,0.00043,0.00055,0.00077,0.00105,0.00139,0.00208,0.00353,0.00729,0.01674,0.03430,0.06960,0.13291,0.20402];
+function qx(t,a){
+  if(a>=100)return a>=110?1:Math.min(1,t[20]*Math.exp(0.1*(a-100)));
+  var i=Math.floor(a/5),f=(a-i*5)/5;
+  if(f===0)return t[i];
+  if(i===0)return t[1];
+  return Math.exp(Math.log(t[i])*(1-f)+Math.log(t[i+1])*f);
 }
+function deathAge(male,x){var t=male?QM:QF,l=1,e=0,a=x;while(a<125&&l>1e-6){var pr=1-qx(t,a);e+=(l+l*pr)/2;l*=pr;a++}return x+e}
+var TREND=[5,4]; /* 평균수명이 10년마다 늘어난 폭: 남 약 5세, 여 약 4세 (8회 2015.04 → 10회 2024.04: 81.4→86.3, 86.7→90.7) */
 var lastData=null;
-function scenario(fin,sv){
-  var age=num('p_age'),ret=num('p_ret'),life=num('p_life'),need=num('p_need'),pen=num('p_pen'),
-      nom=num('p_nom')/100,inf=num('p_inf')/100,boost=num('p_boost')/100,drop=num('p_drop')/100;
-  var n=Math.round(ret-age);
-  var tbl=$('resTbl'),msg=$('scMsg');
-  if(!(age>0)||n<=0){
-    lastData=null;$('chart').innerHTML='';$('legend').innerHTML='';tbl.innerHTML='';
-    msg.innerHTML='<p>은퇴 희망 나이가 현재 나이보다 커야 계산할 수 있습니다.</p>';return;
+function incomeAt(a){
+  var t=0;
+  RET.forEach(function(r){var ag=num(r[0]+'_age'),am=num(r[0]+'_amt');
+    if(r[2]==='살부터'){if(a>=ag)t+=am}else{if(a<ag)t+=am}});
+  return t;
+}
+function retirement(fin,sv){
+  var age=num('p_age'),ret=num('p_ret'),male=num('p_sex')!==2,need=num('p_need'),r=num('p_nom')/100;
+  var hint=$('lifeHint'),msg=$('retMsg');
+  $('invHint').textContent='비워 두면 재무상태표의 금융자산 합계 '+won(fin)+'을 씁니다. 부동산은 넣지 않습니다.';
+  var da=age>0?deathAge(male,age):0,sug=age>0?Math.round(da+TREND[male?0:1]):0;
+  hint.textContent=age>0?'경험생명표(2024.4 시행) 기준 '+(male?'남성':'여성')+' '+age+'세의 평균 사망 나이는 약 '+da.toFixed(1)+'세입니다. 평균수명이 10년마다 늘어난 폭(약 '+TREND[male?0:1]+'세)을 더해 '+sug+'세를 제안합니다. 비워 두면 제안 나이를 씁니다.':'현재 나이를 넣으면 제안 나이가 나옵니다.';
+  var lv=S.v.p_life,life=(lv!==''&&lv!==undefined&&parseFloat(lv)>0)?parseFloat(lv):sug;
+  var iv=S.v.p_inv,W0=(iv!==''&&iv!==undefined&&isFinite(parseFloat(iv)))?parseFloat(iv):fin;
+  var start=Math.max(age,ret);
+  if(!(age>0)||!(ret>0)||!(need>0)||life<=start){
+    lastData=null;$('chart').innerHTML='';$('legend').innerHTML='';
+    msg.innerHTML='<p>현재 나이, 은퇴 희망 나이, 예상 월 생활비를 넣으세요. 예상 수명은 은퇴 나이보다 커야 합니다.</p>';return;
   }
-  var real=(1+nom)/(1+inf)-1,realC=(1+nom-drop)/(1+inf)-1;
-  var sA=series(fin,sv,real,n),sB=series(fin,sv*(1+boost),real,n),sC=series(fin,sv,realC,n);
-  var years=Math.max(0,life-ret),gap=Math.max(0,need-pen),target=gap*12*years;
-  lastData={a:sA,b:sB,c:sC,target:target,age:age,n:n};
-  $('legend').innerHTML='<span class="ln" style="--sw:var(--c1)">A. 지금 그대로</span><span class="ln" style="--sw:var(--c2)">B. 저축 '+(boost*100).toFixed(0)+'% 증가</span><span class="ln" style="--sw:var(--c3)">C. 수익률 '+(drop*100).toFixed(1)+'%p 낮아짐</span>'+(target>0?'<span class="dash">필요 자금</span>':'');
+  var rm=Math.pow(1+r,1/12)-1,bal=W0,total=Math.round((life-age)*12),pts=[[age,bal]],wret=(ret<=age)?W0:null,dep=null,net0=null;
+  for(var m=0;m<total;m++){
+    var a=age+m/12,net;
+    if(a<ret){net=sv}else{
+      if(wret===null)wret=bal;
+      net=incomeAt(a)-need;if(net0===null)net0=net;
+    }
+    bal=(bal>0?bal*(1+rm):bal)+net;
+    if(dep===null&&a>=ret&&bal<0)dep=a;
+    if((m+1)%12===0)pts.push([age+(m+1)/12,bal]);
+  }
+  if(wret===null)wret=bal;
+  lastData={pts:pts,age:age,ret:ret,life:life};
+  $('legend').innerHTML='<span class="ln" style="--sw:var(--c2)">투자자산 잔액</span><span class="ln" style="--sw:var(--need)">모자라는 돈(0 아래)</span>'+(ret>age?'<span class="dash">은퇴 시점</span>':'');
   drawChart();
-  function r(name,s){var e=s[s.length-1],f=target>0?e/target:null;
-    return '<tr><td>'+name+'</td><td class="n">'+won(e)+'</td><td class="n">'+(f===null?'-':Math.round(f*100)+'%')+(f===null?'':'<div class="meter"><i style="width:'+Math.min(100,f*100)+'%"></i></div>')+'</td></tr>'}
-  tbl.innerHTML='<tr><th>경우</th><th>은퇴 시점 금융자산(오늘 가치)</th><th>필요 자금 대비</th></tr>'+r('A. 지금 그대로',sA)+r('B. 저축을 늘리면',sB)+r('C. 수익률이 낮으면',sC);
   var h='';
-  h+='<p>필요 자금은 (월 생활비 '+won(need)+' − 연금 '+won(pen)+') × 12개월 × '+years+'년 = <b>'+won(target)+'</b>입니다.</p>';
-  if(target<=0){h+='<p>입력한 연금이 생활비 이상이라 추가로 준비할 자금이 없습니다. 연금 수령액이 맞는지 다시 확인하세요.</p>'}
-  else{
-    var g=Math.pow(1+real,n),annuity=Math.abs(real)<1e-9?n:(g-1)/real,
-        needC=(target-fin*g)/annuity/12;
-    if(needC<=sv){h+='<p>지금 저축 속도를 유지하면 목표에 닿습니다. 단, 이 계산은 수익률 가정이 맞을 때만 성립합니다.</p>'}
-    else{h+='<p>목표에 닿으려면 매달 약 <b>'+won(needC)+'</b>씩 저축·투자해야 합니다. 지금은 월 '+won(sv)+'입니다. 차이는 월 '+won(needC-sv)+'입니다.</p>'}
-  }
-  h+='<p class="small">가정을 바꾸면 결과가 크게 달라집니다. 이 숫자는 예측이 아니라, 입력한 가정이 그대로 이어질 때의 계산입니다.</p>';
+  if(bal>=0)h+='<p style="font-size:17px">예상 수명 '+life+'세까지 생활비를 쓰고도 약 <b>'+won(bal)+'</b>이 남습니다.</p>';
+  else h+='<p style="font-size:17px" class="neg">예상 수명 '+life+'세까지 약 <b>'+won(-bal)+'</b>이 모자랍니다.</p>';
+  h+='<p>'+start+'세 시점의 투자자산은 약 '+won(wret)+'입니다.'+(dep!==null?' 투자자산은 약 '+Math.floor(dep)+'세에 바닥납니다.':'')+'</p>';
+  if(net0!==null)h+='<p>'+start+'세 첫 달에는 '+(net0<0?'연금·소득이 생활비보다 '+won(-net0)+' 모자라 투자자산에서 뺍니다.':'연금·소득이 생활비보다 '+won(net0)+' 많습니다.')+'</p>';
+  h+='<p class="small">물가상승률은 넣지 않았습니다. 미래 일을 맞히는 계산이 아니라, 입력한 가정이 그대로 이어질 때의 결과입니다.</p>';
   msg.innerHTML=h;
 }
 function nice(max){var p=Math.pow(10,Math.floor(Math.log10(max))),f=max/p,u=f<=1?1:f<=2?2:f<=5?5:10;return u*p}
+function fmtY(v){var a=Math.abs(v),t=a>=10000?(Math.round(a/1000)/10)+'억':Math.round(a).toLocaleString('ko-KR');return (v<0?'−':'')+t}
 function drawChart(){
   var box=$('chart');if(!lastData){box.innerHTML='';return}
   var d=lastData,W=Math.max(280,box.clientWidth||600),H=Math.round(Math.min(300,Math.max(210,W*0.5)));
-  var m={l:56,r:12,t:12,b:28},pw=W-m.l-m.r,ph=H-m.t-m.b;
-  var mx=Math.max(d.target,Math.max.apply(null,d.a.concat(d.b,d.c)),1);
-  var top=nice(mx*1.05),ticks=4;
-  function X(i){return m.l+pw*i/d.n}
-  function Y(v){return m.t+ph*(1-v/top)}
-  function path(s){return s.map(function(v,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)}).join(' ')}
+  var m={l:60,r:12,t:12,b:28},pw=W-m.l-m.r,ph=H-m.t-m.b;
+  var vals=d.pts.map(function(p){return p[1]}),lo=Math.min(0,Math.min.apply(null,vals)),hi=Math.max(0,Math.max.apply(null,vals));
+  if(hi-lo<1)hi=lo+1;
+  var step=nice((hi-lo)/4),y0=Math.floor(lo/step)*step,y1=Math.ceil(hi/step)*step;
+  var a0=d.age,a1=d.life;
+  function X(a){return m.l+pw*(a-a0)/(a1-a0)}
+  function Y(v){return m.t+ph*(1-(v-y0)/(y1-y0))}
   var g='';
-  for(var k=0;k<=ticks;k++){var v=top*k/ticks,y=Y(v);
-    g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y+'" y2="'+y+'" style="stroke:var(--grid)" stroke-width="1"/>'+
-       '<text x="'+(m.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" style="fill:var(--muted);font-family:var(--font-num)">'+(v>=10000?(v/10000)+'억':Math.round(v).toLocaleString('ko-KR'))+'</text>'}
-  var step=d.n<=8?1:d.n<=16?2:d.n<=30?5:10;
-  for(var i=0;i<=d.n;i+=step){g+='<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" style="fill:var(--muted);font-family:var(--font-num)">'+Math.round(d.age+i)+'세</text>'}
-  if(d.n%step!==0){g+='<text x="'+X(d.n)+'" y="'+(H-8)+'" text-anchor="end" font-size="11" style="fill:var(--muted);font-family:var(--font-num)">'+Math.round(d.age+d.n)+'세</text>'}
-  if(d.target>0){var yt=Y(d.target);g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+yt+'" y2="'+yt+'" style="stroke:var(--need)" stroke-width="1.5" stroke-dasharray="6 4"/>'}
-  [[d.c,'--c3'],[d.a,'--c1'],[d.b,'--c2']].forEach(function(p){
-    g+='<path d="'+path(p[0])+'" fill="none" style="stroke:var('+p[1]+')" stroke-width="2.2" stroke-linejoin="round"/>';
-    var e=p[0][p[0].length-1];g+='<circle cx="'+X(d.n)+'" cy="'+Y(e)+'" r="3.5" style="fill:var('+p[1]+')"/>'});
-  box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="나이별 금융자산 추이, 오늘 가치 기준, 단위 만원">'+g+'</svg>';
+  for(var v=y0;v<=y1+step/2;v+=step){var y=Y(v);
+    g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y+'" y2="'+y+'" style="stroke:'+(Math.abs(v)<step/2?'var(--muted)':'var(--grid)')+'" stroke-width="'+(Math.abs(v)<step/2?1.5:1)+'"/>'+
+       '<text x="'+(m.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" style="fill:var(--muted);font-family:var(--font-num)">'+fmtY(v)+'</text>'}
+  var span=a1-a0,st=span<=10?1:span<=25?5:span<=50?10:20,first=Math.ceil(a0/st)*st;
+  for(var a=first;a<=a1;a+=st){g+='<text x="'+X(a)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" style="fill:var(--muted);font-family:var(--font-num)">'+a+'세</text>'}
+  if(d.ret>d.age&&d.ret<d.life){var xr=X(d.ret);g+='<line x1="'+xr+'" x2="'+xr+'" y1="'+m.t+'" y2="'+(H-m.b)+'" style="stroke:var(--need)" stroke-width="1.5" stroke-dasharray="6 4"/>'}
+  for(var i=1;i<d.pts.length;i++){var p=d.pts[i-1],q=d.pts[i];
+    g+='<line x1="'+X(p[0]).toFixed(1)+'" y1="'+Y(p[1]).toFixed(1)+'" x2="'+X(q[0]).toFixed(1)+'" y2="'+Y(q[1]).toFixed(1)+'" style="stroke:var('+(q[1]>=0?'--c2':'--need')+')" stroke-width="2.4" stroke-linecap="round"/>'}
+  var e=d.pts[d.pts.length-1];g+='<circle cx="'+X(e[0])+'" cy="'+Y(e[1])+'" r="3.5" style="fill:var('+(e[1]>=0?'--c2':'--need')+')"/>';
+  box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="나이별 투자자산 잔액, 단위 만원">'+g+'</svg>';
 }
 
 function compact(){var o={};Object.keys(S.v).forEach(function(k){var x=S.v[k];if(x!==''&&x!==undefined&&x!==0)o[k]=x});return o}
@@ -476,10 +504,7 @@ function buildShare(){
   document.querySelectorAll('#diag .card').forEach(function(c){
     var p=c.querySelector('.pill');L.push('· '+txt(c.querySelector('.k span'))+' '+txt(c.querySelector('.v'))+(p?' ('+txt(p)+')':''))});
   var rk=document.querySelectorAll('#rankCards .card');if(rk.length){L.push('');L.push('[전국 가구 중 내 위치: 2025 가계금융복지조사 기준]');Array.prototype.forEach.call(rk,function(c){var v=txt(c.querySelector('.v'));if(v!=='-')L.push('· '+txt(c.querySelector('.k span'))+' '+v)});L.push('· 한국 중위 순자산 2억 3,860만원 / 중위 소득 5,800만원')}
-  var rows=document.querySelectorAll('#resTbl tr');
-  if(rows.length>1){L.push('');L.push('[은퇴 시나리오: 오늘 가치 기준]');
-    Array.prototype.slice.call(rows,1).forEach(function(r){var c=r.children;L.push('· '+txt(c[0])+' '+txt(c[1])+' (필요 자금 대비 '+txt(c[2])+')')})}
-  var ps=document.querySelectorAll('#scMsg p');if(ps.length){L.push('');L.push(txt(ps[0]));if(ps[1])L.push(txt(ps[1]))}
+  var rp=document.querySelectorAll('#retMsg p');if(rp.length){L.push('');L.push('[은퇴 후 현금흐름: 물가상승률 제외]');Array.prototype.slice.call(rp,0,3).forEach(function(x){L.push('· '+txt(x))})}
   L.push('');L.push('※ 교육용 계산입니다. 예측이나 투자 권유가 아닙니다.');
   L.push('');L.push('[내 숫자 코드: 다음에 이 메시지를 복사해 붙여넣으면 숫자가 돌아옵니다]');
   L.push(JSON.stringify(compact()));
@@ -494,9 +519,9 @@ function init(){
   load();build();
   $('sampleNotice').hidden=!S.sample;
   $('clearBtn').addEventListener('click',function(){
-    var keep={};PARAMS.forEach(function(p){keep[p[0]]=SAMPLE[p[0]]});
+    var keep={};KEEP.forEach(function(k){keep[k]=SAMPLE[k]});
     S={v:keep,sample:false};save();
-    document.querySelectorAll('input[data-k]').forEach(function(el){var v=S.v[el.dataset.k];el.value=(v===undefined)?'':v});
+    document.querySelectorAll('[data-k]').forEach(function(el){var v=S.v[el.dataset.k];el.value=(v===undefined)?'':v});
     $('sampleNotice').hidden=true;calc();window.scrollTo(0,0);
   });
   $('copyBtn').addEventListener('click',function(){
@@ -507,7 +532,7 @@ function init(){
   $('loadBtn').addEventListener('click',function(){
     try{var s=$('backup').value,i=s.indexOf('{'),j=s.lastIndexOf('}');var o=JSON.parse(s.slice(i,j+1));if(!o||typeof o!=='object')throw 0;
       S={v:o,sample:false};save();
-      document.querySelectorAll('input[data-k]').forEach(function(el){var v=S.v[el.dataset.k];el.value=(v===undefined||v==='')?'':v});
+      document.querySelectorAll('[data-k]').forEach(function(el){var v=S.v[el.dataset.k];el.value=(v===undefined||v==='')?'':v});
       $('sampleNotice').hidden=true;calc();$('backupMsg').textContent='불러왔습니다.';
     }catch(e){$('backupMsg').textContent='읽을 수 없는 내용입니다. 복사한 숫자를 그대로 붙여넣었는지 확인하세요.'}
   });
