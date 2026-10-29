@@ -216,10 +216,10 @@ textarea{width:100%;min-height:90px;font-family:var(--font-num);font-size:12px;p
 <section class="block">
   <h2>5. 은퇴 후 돈이 얼마나 버틸까 <span class="unit">금액은 오늘 가치 기준</span></h2>
   <div class="body">
-    <p class="small" style="margin:0 0 8px">나이와 성별은 맨 위 기본 정보의 값을 씁니다. 은퇴 전까지는 위 2번의 월 저축·투자액을 계속 모은다고 봅니다.</p>
+    <p class="small" style="margin:0 0 8px">나이와 성별은 맨 위 기본 정보의 값을 씁니다. 은퇴 희망 나이(기본 60세)까지는 위 2번의 월 저축·투자액을 계속 모으고, 그 나이부터 생활비를 씁니다.</p>
     <div class="msg" style="margin:0 0 12px"><p id="lifeHint"></p><p id="invHint"></p></div>
     <div class="params">
-      <div class="row"><label for="p_ret">은퇴 희망 나이 <span class="unit">세</span></label><input id="p_ret" data-k="p_ret" data-step="1" data-def="60" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+      <div class="row"><label for="p_ret">은퇴 희망 나이 <span class="unit">세</span></label><input id="p_ret" data-k="p_ret" data-step="1" data-def="60" type="number" inputmode="numeric" min="0" step="1" placeholder="60"></div>
       
       <div class="row"><label for="p_life">예상 수명 <span class="unit">세까지</span></label><input id="p_life" data-k="p_life" data-step="1" data-def="90" type="number" inputmode="numeric" min="0" step="1" placeholder="자동"></div>
       <div class="row"><label for="p_need">예상 월 생활비 <span class="unit">만원</span><small>−/+ 버튼은 10만원 단위입니다.</small></label><input id="p_need" data-k="p_need" data-step="10" data-def="300" type="number" inputmode="decimal" min="0" step="10" placeholder="0"></div>
@@ -293,7 +293,7 @@ var CF={
  vary:{g:'D. 변동지출 (월)',rows:[['v_food','식비','식료품, 외식'],['v_pocket','용돈','본인, 배우자, 자녀'],['v_car','차량·교통비','대중교통, 주유, 주차, 대리운전'],['v_cloth','의류·미용','의류, 신발, 미용실, 화장품'],['v_health','건강·의료비','병원, 약, 영양제'],['v_culture','문화·여가비','취미, 운동, 공연, 도서'],['v_social','교제비','회식, 술자리']]},
  irr:{g:'E. 비정기지출 (연간 합계)',rows:[['e_tax','세금','자동차세, 재산세, 종합부동산세'],['e_family','가족행사','명절, 생신, 용돈'],['e_event','경조사비','결혼, 장례'],['e_carfix','차량정비','자동차보험료, 수리비, 소모품'],['e_etc','기타','여행경비, 가전·비품 수리와 교체']]}
 };
-var DEFAULTS={p_nom:5,p_inf:2.5,n_age:60,r_age:60,pp_age:60,h_age:60,w_age:60,o_age:60};
+var DEFAULTS={p_ret:60,p_nom:5,p_inf:2.5,n_age:60,r_age:60,pp_age:60,h_age:60,w_age:60,o_age:60};
 var RET=[['n','국민연금','살부터'],['r','퇴직연금','살부터'],['pp','개인연금','살부터'],['h','주택연금','살부터'],['w','근로소득','살까지'],['o','기타소득','살까지']];
 var KEEP=['p_nom','p_inf','p_sex'];
 var SAMPLE={a_home:45000,a_realty:0,a_deposit:0,a_cash:4000,a_stock:6000,a_pension:5000,a_isa:1500,a_ins:1200,a_car:1500,a_etc:500,
@@ -480,7 +480,7 @@ function incomeAt(a){
   return t;
 }
 function retirement(fin,sv){
-  var age=num('p_age'),ret=num('p_ret'),male=num('p_sex')!==2,need=num('p_need'),nom=numD('p_nom')/100,inf=numD('p_inf')/100,r=(1+nom)/(1+inf)-1;
+  var age=num('p_age'),ret=numD('p_ret'),male=num('p_sex')!==2,need=num('p_need'),nom=numD('p_nom')/100,inf=numD('p_inf')/100,r=(1+nom)/(1+inf)-1;
   var hint=$('lifeHint'),msg=$('retMsg');
   $('infHint').textContent='금액은 모두 오늘 가치로 읽습니다. 물가를 뺀 실질수익률은 연 '+(r*100).toFixed(1)+'%입니다.';
   var da=age>0?deathAge(male,age):0,sug=age>0?Math.round(da+TREND[male?0:1]):0;
